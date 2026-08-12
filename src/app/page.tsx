@@ -4,7 +4,7 @@ import ApplicationForm from "@/components/ApplicationForm";
 export default function Home() {
   return (
     <main className="min-h-screen bg-page py-0 sm:px-4 sm:py-[34px]">
-      <div className="relative mx-auto max-w-[940px] border-0 border-line bg-cream px-6 py-9 sm:border sm:px-12 sm:py-[60px] md:px-[66px]">
+      <div className="relative mx-auto max-w-[940px] min-w-0 overflow-x-hidden border-0 border-line bg-cream px-6 py-9 sm:border sm:px-12 sm:py-[60px] md:px-[66px]">
         {/* Header */}
         <header className="flex items-start justify-between gap-4">
           <Image

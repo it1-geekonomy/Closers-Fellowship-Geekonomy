@@ -1,13 +1,18 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
 
 const SEATS = [
-  "Head of Sales",
-  "Builds AE — services and one-time",
-  "Retainer AE — recurring",
-  "Not sure, you decide",
+  { value: "Head of Sales", label: "Head of Sales" },
+  {
+    value: "Builds AE — services and one-time",
+    label: "Builds AE — one-time",
+  },
+  { value: "Retainer AE — recurring", label: "Retainer AE — recurring" },
+  { value: "Not sure, you decide", label: "Not sure, you decide" },
 ] as const;
+
+type SeatValue = (typeof SEATS)[number]["value"];
 
 const QUESTIONS = [
   {
@@ -28,7 +33,7 @@ const QUESTIONS = [
 ] as const;
 
 const fieldClass =
-  "w-full rounded-lg border border-line bg-[#f8f7f2] px-3.5 py-3 text-[15px] text-ink outline-none transition focus:border-green focus:bg-white";
+  "w-full max-w-full min-w-0 rounded-lg border border-line bg-[#f8f7f2] px-3.5 py-3 text-[15px] text-ink outline-none transition focus:border-green focus:bg-white";
 
 function getUtmParams() {
   if (typeof window === "undefined") {
@@ -51,11 +56,95 @@ function getUtmParams() {
   };
 }
 
+function SeatSelect({
+  value,
+  onChange,
+}: {
+  value: SeatValue;
+  onChange: (value: SeatValue) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  const selected = SEATS.find((seat) => seat.value === value) ?? SEATS[0];
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative w-full min-w-0">
+      <input type="hidden" name="seat" value={value} />
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => setOpen((prev) => !prev)}
+        className={`${fieldClass} flex cursor-pointer items-center justify-between gap-3 text-left`}
+      >
+        <span className="min-w-0 truncate">{selected.label}</span>
+        <span className="shrink-0 text-[#8a8a82]" aria-hidden>
+          ▾
+        </span>
+      </button>
+
+      {open && (
+        <ul
+          id={listId}
+          role="listbox"
+          className="absolute top-[calc(100%+6px)] right-0 left-0 z-20 max-h-60 overflow-auto rounded-lg border border-line bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
+        >
+          {SEATS.map((seat) => {
+            const isActive = seat.value === value;
+            return (
+              <li key={seat.value} role="option" aria-selected={isActive}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(seat.value);
+                    setOpen(false);
+                  }}
+                  className={`block w-full cursor-pointer px-3.5 py-2.5 text-left text-[14px] leading-snug break-words ${
+                    isActive
+                      ? "bg-[#eef6e9] font-medium text-ink"
+                      : "text-ink hover:bg-[#f8f7f2]"
+                  }`}
+                >
+                  {seat.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function ApplicationForm() {
   const [submitted, setSubmitted] = useState(false);
   const [questionsError, setQuestionsError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [seat, setSeat] = useState<SeatValue>(SEATS[0].value);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -85,7 +174,7 @@ export default function ApplicationForm() {
           full_name: String(formData.get("fullName") || "").trim(),
           email: String(formData.get("email") || "").trim(),
           phone: String(formData.get("phone") || "").trim(),
-          seat: String(formData.get("seat") || "").trim(),
+          seat,
           linkedin_portfolio: String(formData.get("linkedin") || "").trim(),
           answer_q1: q1,
           answer_q2: q2,
@@ -107,6 +196,7 @@ export default function ApplicationForm() {
       }
 
       form.reset();
+      setSeat(SEATS[0].value);
       setSubmitted(true);
     } catch {
       setSubmitError("Network error. Please check your connection and try again.");
@@ -126,8 +216,8 @@ export default function ApplicationForm() {
             Who are you
           </h2>
 
-          <div className="mt-[22px] grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-[26px] sm:gap-y-5">
-            <label className="flex flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+          <div className="mt-[22px] grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-[26px] sm:gap-y-5">
+            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
               Full name
               <input
                 type="text"
@@ -138,7 +228,7 @@ export default function ApplicationForm() {
               />
             </label>
 
-            <label className="flex flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
               Email
               <input
                 type="email"
@@ -149,7 +239,7 @@ export default function ApplicationForm() {
               />
             </label>
 
-            <label className="flex flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
               Phone / WhatsApp
               <input
                 type="tel"
@@ -160,18 +250,12 @@ export default function ApplicationForm() {
               />
             </label>
 
-            <label className="flex flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
-              Which seat fits you?
-              <select name="seat" required defaultValue={SEATS[0]} className={fieldClass}>
-                {SEATS.map((seat) => (
-                  <option key={seat} value={seat}>
-                    {seat}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+              <span>Which seat fits you?</span>
+              <SeatSelect value={seat} onChange={setSeat} />
+            </div>
 
-            <label className="flex flex-col gap-2 text-[13.5px] font-medium text-[#55554e] sm:col-span-2">
+            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e] sm:col-span-2">
               <span>
                 LinkedIn or portfolio{" "}
                 <span className="text-xs font-normal text-[#a2a29a]">optional</span>
@@ -200,12 +284,12 @@ export default function ApplicationForm() {
           {QUESTIONS.map((q, i) => (
             <div
               key={q.id}
-              className="mt-[22px] grid grid-cols-[40px_1fr] items-start gap-3.5 sm:grid-cols-[44px_1fr]"
+              className="mt-[22px] grid min-w-0 grid-cols-[40px_1fr] items-start gap-3.5 sm:grid-cols-[44px_1fr]"
             >
               <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-full bg-green font-display text-lg font-bold text-white">
                 Q{i + 1}
               </div>
-              <label className="flex flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+              <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
                 {q.label}
                 <textarea
                   name={q.id}
