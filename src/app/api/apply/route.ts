@@ -20,6 +20,17 @@ function asTrimmedString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+export async function GET() {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "This endpoint only accepts POST from the application form. Open the homepage and submit there.",
+    },
+    { status: 405 },
+  );
+}
+
 export async function POST(request: Request) {
   const apiUrl = process.env.HRMS_API_URL?.trim();
   const apiKey = process.env.HRMS_API_KEY?.trim();
@@ -29,7 +40,7 @@ export async function POST(request: Request) {
       {
         success: false,
         message:
-          "HRMS API is not configured. Set HRMS_API_URL and HRMS_API_KEY in .env.local.",
+          "HRMS API is not configured. Set HRMS_API_URL and HRMS_API_KEY in Vercel Environment Variables (or .env.local locally), then redeploy.",
       },
       { status: 500 },
     );
