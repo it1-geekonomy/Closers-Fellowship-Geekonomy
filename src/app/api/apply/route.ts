@@ -97,21 +97,48 @@ export async function POST(request: Request) {
   };
 
   try {
-    // HRMS accepts any of: X-API-Key, Authorization: Api-Key, or ?api_key=
+    // Django APPEND_SLASH can 301 POST→GET if trailing slash is missing.
     const endpoint = new URL(apiUrl);
-    endpoint.searchParams.set("api_key", apiKey);
+    if (!endpoint.pathname.endsWith("/")) {
+      endpoint.pathname = `${endpoint.pathname}/`;
+    }
 
-    const response = await fetch(endpoint.toString(), {
+    const headers = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-API-Key": apiKey,
+    };
+    const bodyJson = JSON.stringify(payload);
+
+    // Do not auto-follow redirects (301/302 turn POST into GET).
+    let response = await fetch(endpoint.toString(), {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-API-Key": apiKey,
-        Authorization: `Api-Key ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
+      headers,
+      body: bodyJson,
       cache: "no-store",
+      redirect: "manual",
     });
+
+    if ([301, 302, 303, 307, 308].includes(response.status)) {
+      const location = response.headers.get("location");
+      if (!location) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "HRMS redirected the request without a Location header.",
+          },
+          { status: 502 },
+        );
+      }
+      const redirectedUrl = new URL(location, endpoint).toString();
+      response = await fetch(redirectedUrl, {
+        method: "POST",
+        headers,
+        body: bodyJson,
+        cache: "no-store",
+        redirect: "manual",
+      });
+    }
 
     const data = (await response.json().catch(() => null)) as
       | { success?: boolean; id?: number; message?: string; detail?: string }
@@ -121,7 +148,7 @@ export async function POST(request: Request) {
       console.error("[closers-fellowship] HRMS rejected request", {
         status: response.status,
         message: data?.message || data?.detail || null,
-        apiUrl,
+        apiUrl: endpoint.toString(),
         keyLoaded: Boolean(apiKey),
         keyLength: apiKey.length,
       });
