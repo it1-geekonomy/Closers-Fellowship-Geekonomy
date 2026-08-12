@@ -146,6 +146,12 @@ export default function ApplicationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [seat, setSeat] = useState<SeatValue>(SEATS[0].value);
 
+  useEffect(() => {
+    if (!submitted) return;
+    const timer = window.setTimeout(() => setSubmitted(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [submitted]);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
