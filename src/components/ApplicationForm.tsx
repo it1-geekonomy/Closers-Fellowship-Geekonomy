@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
 const SEATS = [
   { value: "Head of Sales", label: "Head of Sales" },
@@ -141,7 +140,6 @@ function SeatSelect({
 }
 
 export default function ApplicationForm() {
-  const router = useRouter();
   const [questionsError, setQuestionsError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -196,7 +194,9 @@ export default function ApplicationForm() {
         return;
       }
 
-      router.push("/thank-you");
+      // Full page load so Meta/GTM see /thank-you immediately (soft nav often delays pixels until next click).
+      window.location.assign("/thank-you");
+      return;
     } catch {
       setSubmitError("Network error. Please check your connection and try again.");
     } finally {
