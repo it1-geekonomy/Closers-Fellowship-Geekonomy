@@ -19,13 +19,7 @@ export default function ThankYouPage() {
     window.dataLayer.push({
       event: "closers_fellowship_application_success",
     });
-
-    const timer = window.setTimeout(() => {
-      router.push("/");
-    }, 5000);
-
-    return () => window.clearTimeout(timer);
-  }, [router]);
+  }, []);
 
   return (
     <div className="relative">
