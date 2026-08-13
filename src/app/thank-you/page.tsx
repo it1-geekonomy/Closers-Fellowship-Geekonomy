@@ -1,28 +1,8 @@
 "use client";
 
 import ApplicationPage from "@/components/ApplicationPage";
-import { useEffect } from "react";
-
-declare global {
-  interface Window {
-    dataLayer?: Record<string, unknown>[];
-    fbq?: (...args: unknown[]) => void;
-  }
-}
 
 export default function ThankYouPage() {
-  useEffect(() => {
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: "closers_fellowship_application_success",
-      page_path: "/thank-you",
-    });
-
-    if (typeof window.fbq === "function") {
-      window.fbq("track", "Lead");
-    }
-  }, []);
-
   function handleClose() {
     window.location.assign("/");
   }

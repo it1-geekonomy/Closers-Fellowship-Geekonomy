@@ -18,29 +18,31 @@ export default function ThankYouLayout({
 }) {
   return (
     <>
-      {/* Fire as early as possible so Meta/GTM don't wait for Close */}
       <Script id="thank-you-conversion" strategy="beforeInteractive">
         {`
-          window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push({
-            event: 'closers_fellowship_application_success',
-            page_path: '/thank-you'
-          });
-          (function trackLead() {
-            if (typeof window.fbq === 'function') {
+          (function () {
+            if (window.__closersThankYouTracked) return;
+            window.__closersThankYouTracked = true;
+
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: 'closers_fellowship_application_success',
+              page_path: '/thank-you'
+            });
+
+            function trackLead() {
+              if (typeof window.fbq !== 'function') return false;
               window.fbq('track', 'Lead');
-              return;
+              return true;
             }
-            var tries = 0;
-            var timer = setInterval(function () {
-              tries += 1;
-              if (typeof window.fbq === 'function') {
-                window.fbq('track', 'Lead');
-                clearInterval(timer);
-              } else if (tries > 25) {
-                clearInterval(timer);
-              }
-            }, 200);
+
+            if (!trackLead()) {
+              var tries = 0;
+              var timer = setInterval(function () {
+                tries += 1;
+                if (trackLead() || tries > 25) clearInterval(timer);
+              }, 200);
+            }
           })();
         `}
       </Script>
