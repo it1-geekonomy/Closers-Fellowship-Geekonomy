@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const SEATS = [
   { value: "Head of Sales", label: "Head of Sales" },
@@ -140,17 +141,11 @@ function SeatSelect({
 }
 
 export default function ApplicationForm() {
-  const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
   const [questionsError, setQuestionsError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [seat, setSeat] = useState<SeatValue>(SEATS[0].value);
-
-  useEffect(() => {
-    if (!submitted) return;
-    const timer = window.setTimeout(() => setSubmitted(false), 5000);
-    return () => window.clearTimeout(timer);
-  }, [submitted]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -201,9 +196,7 @@ export default function ApplicationForm() {
         return;
       }
 
-      form.reset();
-      setSeat(SEATS[0].value);
-      setSubmitted(true);
+      router.push("/thank-you");
     } catch {
       setSubmitError("Network error. Please check your connection and try again.");
     } finally {
@@ -212,165 +205,126 @@ export default function ApplicationForm() {
   }
 
   return (
-    <>
-      <form onSubmit={handleSubmit}>
-        <section className="relative mt-[52px] border-t border-line pt-[30px]">
-          <div className="font-display text-[15px] font-bold tracking-[2px] text-green">
-            01
+    <form onSubmit={handleSubmit}>
+      <section className="relative mt-[52px] border-t border-line pt-[30px]">
+        <div className="font-display text-[15px] font-bold tracking-[2px] text-green">
+          01
+        </div>
+        <h2 className="mt-0.5 font-display text-2xl font-semibold tracking-[0.5px] text-ink sm:text-[30px]">
+          Who are you
+        </h2>
+
+        <div className="mt-[22px] grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-[26px] sm:gap-y-5">
+          <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+            Full name
+            <input
+              type="text"
+              name="fullName"
+              required
+              placeholder="Your name"
+              className={fieldClass}
+            />
+          </label>
+
+          <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+            Email
+            <input
+              type="email"
+              name="email"
+              required
+              placeholder="you@email.com"
+              className={fieldClass}
+            />
+          </label>
+
+          <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+            Phone / WhatsApp
+            <input
+              type="tel"
+              name="phone"
+              required
+              placeholder="+91"
+              className={fieldClass}
+            />
+          </label>
+
+          <div className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+            <span>Which seat fits you?</span>
+            <SeatSelect value={seat} onChange={setSeat} />
           </div>
-          <h2 className="mt-0.5 font-display text-2xl font-semibold tracking-[0.5px] text-ink sm:text-[30px]">
-            Who are you
-          </h2>
 
-          <div className="mt-[22px] grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-[26px] sm:gap-y-5">
-            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
-              Full name
-              <input
-                type="text"
-                name="fullName"
-                required
-                placeholder="Your name"
-                className={fieldClass}
-              />
-            </label>
+          <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e] sm:col-span-2">
+            <span>
+              LinkedIn or portfolio{" "}
+              <span className="text-xs font-normal text-[#a2a29a]">optional</span>
+            </span>
+            <input
+              type="url"
+              name="linkedin"
+              placeholder="https://"
+              className={fieldClass}
+            />
+          </label>
+        </div>
+      </section>
 
-            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
-              Email
-              <input
-                type="email"
-                name="email"
-                required
-                placeholder="you@email.com"
-                className={fieldClass}
-              />
-            </label>
+      <section className="relative mt-[52px] border-t border-line pt-[30px]">
+        <div className="font-display text-[15px] font-bold tracking-[2px] text-green">
+          02
+        </div>
+        <h2 className="mt-0.5 font-display text-2xl font-semibold tracking-[0.5px] text-ink sm:text-[30px]">
+          The three questions
+        </h2>
+        <p className="mt-2 mb-1.5 text-[14.5px] text-muted">
+          Answer any 2 of the 3. Be specific. Vague answers read as vague.
+        </p>
 
-            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
-              Phone / WhatsApp
-              <input
-                type="tel"
-                name="phone"
-                required
-                placeholder="+91"
-                className={fieldClass}
-              />
-            </label>
-
-            <div className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
-              <span>Which seat fits you?</span>
-              <SeatSelect value={seat} onChange={setSeat} />
+        {QUESTIONS.map((q, i) => (
+          <div
+            key={q.id}
+            className="mt-[22px] grid min-w-0 grid-cols-[40px_1fr] items-start gap-3.5 sm:grid-cols-[44px_1fr]"
+          >
+            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-full bg-green font-display text-lg font-bold text-white">
+              Q{i + 1}
             </div>
-
-            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e] sm:col-span-2">
-              <span>
-                LinkedIn or portfolio{" "}
-                <span className="text-xs font-normal text-[#a2a29a]">optional</span>
-              </span>
-              <input
-                type="url"
-                name="linkedin"
-                placeholder="https://"
-                className={fieldClass}
+            <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
+              {q.label}
+              <textarea
+                name={q.id}
+                rows={3}
+                onChange={() => questionsError && setQuestionsError("")}
+                className={`${fieldClass} resize-y leading-normal`}
               />
             </label>
           </div>
-        </section>
+        ))}
 
-        <section className="relative mt-[52px] border-t border-line pt-[30px]">
-          <div className="font-display text-[15px] font-bold tracking-[2px] text-green">
-            02
-          </div>
-          <h2 className="mt-0.5 font-display text-2xl font-semibold tracking-[0.5px] text-ink sm:text-[30px]">
-            The three questions
-          </h2>
-          <p className="mt-2 mb-1.5 text-[14.5px] text-muted">
-            Answer any 2 of the 3. Be specific. Vague answers read as vague.
+        {questionsError && (
+          <p className="mt-4 text-sm font-medium text-[#b42318]" role="alert">
+            {questionsError}
           </p>
+        )}
+      </section>
 
-          {QUESTIONS.map((q, i) => (
-            <div
-              key={q.id}
-              className="mt-[22px] grid min-w-0 grid-cols-[40px_1fr] items-start gap-3.5 sm:grid-cols-[44px_1fr]"
-            >
-              <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-full bg-green font-display text-lg font-bold text-white">
-                Q{i + 1}
-              </div>
-              <label className="flex min-w-0 flex-col gap-2 text-[13.5px] font-medium text-[#55554e]">
-                {q.label}
-                <textarea
-                  name={q.id}
-                  rows={3}
-                  onChange={() => questionsError && setQuestionsError("")}
-                  className={`${fieldClass} resize-y leading-normal`}
-                />
-              </label>
-            </div>
-          ))}
-
-          {questionsError && (
-            <p className="mt-4 text-sm font-medium text-[#b42318]" role="alert">
-              {questionsError}
+      <section className="mt-12 flex flex-wrap items-center justify-between gap-5 border-t border-line pt-7">
+        <div>
+          <p className="text-[15px] text-[#55554e]">
+            A few seats. Half your pay is yours to earn.
+          </p>
+          {submitError && (
+            <p className="mt-2 text-sm font-medium text-[#b42318]" role="alert">
+              {submitError}
             </p>
           )}
-        </section>
-
-        <section className="mt-12 flex flex-wrap items-center justify-between gap-5 border-t border-line pt-7">
-          <div>
-            <p className="text-[15px] text-[#55554e]">
-              A few seats. Half your pay is yours to earn.
-            </p>
-            {submitError && (
-              <p className="mt-2 text-sm font-medium text-[#b42318]" role="alert">
-                {submitError}
-              </p>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="cursor-pointer rounded-full bg-green px-[34px] py-[15px] font-display text-[19px] font-bold tracking-[1px] text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isSubmitting ? "SUBMITTING…" : "SUBMIT APPLICATION →"}
-          </button>
-        </section>
-      </form>
-
-      {submitted && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(20,20,18,0.72)] p-[30px]"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-title"
-        >
-          <div className="w-full max-w-[560px] rounded border border-line bg-cream px-8 py-[52px] text-left sm:px-[50px]">
-            <div className="font-display text-base font-semibold tracking-[5px] text-muted uppercase">
-              THE CLOSERS FELLOWSHIP
-            </div>
-            <div className="my-3 h-1 w-[60px] rounded-sm bg-green" />
-            <h2
-              id="confirm-title"
-              className="font-display text-[32px] leading-[1.05] font-bold text-ink sm:text-[38px]"
-            >
-              That&apos;s it. No follow-up needed.
-            </h2>
-            <p className="mt-[18px] text-[15px] leading-[1.65] text-[#4a4a45]">
-              We read every application ourselves, not a bot. If your answers land, you
-              will hear from us within a few days for a short call. If they do not, it
-              was not the fit this time, and we respect your time enough to tell you.
-            </p>
-            <div className="mt-6 text-[13px] tracking-[0.5px] text-muted">
-              Geekonomy &nbsp;·&nbsp; Built for people who close.
-            </div>
-            <button
-              type="button"
-              onClick={() => setSubmitted(false)}
-              className="mt-8 cursor-pointer rounded-full border border-line bg-transparent px-6 py-2.5 font-display text-sm font-semibold tracking-wide text-ink transition hover:border-green hover:text-green"
-            >
-              CLOSE
-            </button>
-          </div>
         </div>
-      )}
-    </>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="cursor-pointer rounded-full bg-green px-[34px] py-[15px] font-display text-[19px] font-bold tracking-[1px] text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {isSubmitting ? "SUBMITTING…" : "SUBMIT APPLICATION →"}
+        </button>
+      </section>
+    </form>
   );
 }
