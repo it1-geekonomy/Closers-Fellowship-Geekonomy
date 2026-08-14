@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   title: "The Closers Fellowship — Apply · Geekonomy",
   description:
     "Three questions. No cover letter, no buzzwords. Apply to The Closers Fellowship at Geekonomy — on-site in Bengaluru.",
+  icons: {
+    icon: [{ url: "/image.png", type: "image/png" }],
+    shortcut: "/image.png",
+    apple: "/image.png",
+  },
 };
 
 const GTM_ID = "GTM-NPGW9BWJ";
